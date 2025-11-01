@@ -16,10 +16,6 @@ contract FHECounter is SepoliaConfig {
         return _count;
     }
 
-    function getDiv() external view returns (euint32) {
-        return _div;
-    }
-
     /// @notice Increments the counter by a specified encrypted value.
     /// @param inputEuint32 the encrypted input value
     /// @param inputProof the input proof
@@ -29,9 +25,6 @@ contract FHECounter is SepoliaConfig {
         euint32 encryptedEuint32 = FHE.fromExternal(inputEuint32, inputProof);
 
         _count = FHE.add(_count, encryptedEuint32);
-
-        _rand = FHE.randEuint32(100);
-        FHE.allowThis(_rand);
 
         FHE.allowThis(_count);
         FHE.allow(_count, msg.sender);
