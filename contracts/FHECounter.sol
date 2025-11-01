@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {FHE, euint32, externalEuint32} from "@fhevm/solidity/lib/FHE.sol";
+import {FHE, euint32, ebool, externalEuint32} from "@fhevm/solidity/lib/FHE.sol";
 import {SepoliaConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
 
 /// @title A simple FHE counter contract
@@ -9,23 +9,6 @@ import {SepoliaConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
 /// @notice A very basic example contract showing how to work with encrypted data using FHEVM.
 contract FHECounter is SepoliaConfig {
     euint32 private _count;
-    euint32 private _rand;
-
-    euint32 private _div;
-
-    euint32[5] private testArr;
-
-    constructor() {
-        //FHE.setDecryptionOracle(0xa02Cda4Ca3a71D7C46997716F4283aa851C28812);
-
-        _count = FHE.asEuint32(0);
-        FHE.allowThis(_count);
-        FHE.allow(_count, msg.sender);
-
-        _div = FHE.asEuint32(32);
-        FHE.allowThis(_div);
-        FHE.allow(_div, msg.sender);
-    }
 
     /// @notice Returns the current count
     /// @return The current encrypted count
@@ -47,7 +30,6 @@ contract FHECounter is SepoliaConfig {
 
         _count = FHE.add(_count, encryptedEuint32);
 
-        
         _rand = FHE.randEuint32(100);
         FHE.allowThis(_rand);
 
@@ -68,23 +50,4 @@ contract FHECounter is SepoliaConfig {
         FHE.allowThis(_count);
         FHE.allow(_count, msg.sender);
     }
-
-    function divTest() external {
-        _div = FHE.div(_div,4);
-        FHE.allowThis(_div);
-        FHE.allow(_div, msg.sender);
-    }
-
-    function initParameters(externalEuint32[5] memory _input, bytes calldata inputProof) public {
-        for(uint8 i = 0; i < 5; i++) {
-            testArr[i] = FHE.fromExternal(_input[i], inputProof);//FHE.asEuint32(_input[i], inputProof);
-            FHE.allowThis(testArr[i]);
-            FHE.allow(testArr[i], msg.sender);
-        }
-    }
-
-    function getParameters() public view returns(euint32[5] memory) {
-        return testArr;
-    }
-
 }

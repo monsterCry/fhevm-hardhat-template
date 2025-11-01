@@ -4,9 +4,9 @@ pragma solidity ^0.8.24;
 import {FHE, euint64, externalEuint32} from "@fhevm/solidity/lib/FHE.sol";
 import {SepoliaConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
 
-import {EvolvingMonster} from './EvolvingMonster.sol';
-import {GeneMarketplace} from './GeneMarketplace.sol';
-import {Inventory,ItemInfo} from './Inventory.sol';
+import {EvolvingMonster} from "./EvolvingMonster.sol";
+import {GeneMarketplace} from "./GeneMarketplace.sol";
+import {Inventory, ItemInfo} from "./Inventory.sol";
 
 contract Minter is SepoliaConfig {
     EvolvingMonster private monster;
@@ -14,33 +14,41 @@ contract Minter is SepoliaConfig {
     address private market;
     address private fight;
 
-    constructor(address _monster, address _market,address _fight,address _inventory) {
+    mapping(address => uint256) private mintTime;
+
+    constructor(address _monster, address _market, address _fight, address _inventory) {
         monster = EvolvingMonster(_monster);
-        inventory = Inventory(inventory);
+        inventory = Inventory(_inventory);
         market = _market;
         fight = _fight;
     }
 
     function mintMonsterEgg(string memory _name) public {
         monster.mintMonsterEgg(_name, msg.sender);
+        inventory.internalMint(msg.sender, 1);
+        inventory.internalMint(msg.sender, 2);
     }
 
     function gm() public {
+        // if(block.timestamp - mintTime[msg.sender] < 24 * 60 * 60 * 1000) {
+        //     return;
+        // }
         euint64 erand = FHE.randEuint64();
         uint64 rand = monster.random(erand) % 100000;
-        if(rand < 10) {
-            inventory.internalMint(msg.sender,1);
-        } else if(rand >= 10 && rand < 1010) {
-            inventory.internalMint(msg.sender,2);
+        if (rand < 10) {
+            inventory.internalMint(msg.sender, 1);
+        } else if (rand >= 10 && rand < 1010) {
+            inventory.internalMint(msg.sender, 2);
         }
+        mintTime[msg.sender] = block.timestamp;
     }
 
     function makeMutation(uint256 _tokenId) public {
-        if(inventory.ownerOf(_tokenId) != msg.sender) {
+        if (inventory.ownerOf(_tokenId) != msg.sender) {
             return;
         }
         ItemInfo memory iinfo = inventory.getItemInfo(_tokenId);
-        if(iinfo.itemType != 1) {
+        if (iinfo.itemType != 1) {
             return;
         }
         monster.makeMutation(msg.sender);
@@ -48,11 +56,11 @@ contract Minter is SepoliaConfig {
     }
 
     function makeRecovery(uint256 _tokenId) public {
-        if(inventory.ownerOf(_tokenId) != msg.sender) {
+        if (inventory.ownerOf(_tokenId) != msg.sender) {
             return;
         }
         ItemInfo memory iinfo = inventory.getItemInfo(_tokenId);
-        if(iinfo.itemType != 2) {
+        if (iinfo.itemType != 2) {
             return;
         }
         monster.recoverEnergy(msg.sender);
