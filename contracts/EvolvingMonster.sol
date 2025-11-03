@@ -233,9 +233,9 @@ contract EvolvingMonster is SepoliaConfig, ERC721URIStorage, Ownable {
         Property memory p1 = monsters[_to];
         for (uint8 i = 0; i < 3; i++) {
             monsters[_to].attrs[i] = polynomialMutation(p1.attrs[i], 500, 10000, 20);
+
             FHE.allowThis(monsters[_to].attrs[i]);
             FHE.allow(monsters[_to].attrs[i], _toAddr);
-
             FHE.allow(monsters[_to].attrs[i], market);
             FHE.allow(monsters[_to].attrs[i], fight);
         }
@@ -272,6 +272,12 @@ contract EvolvingMonster is SepoliaConfig, ERC721URIStorage, Ownable {
     function recoverEnergy(address _toAddr) public onlyOwner {
         uint256 _to = userMonster[_toAddr];
         monsters[_to].energy = 1000;
+    }
+
+    function decreseEnergy(address _toAddr, uint64 _val) public {
+        require(msg.sender == fight, "Energy decrese must in fightroom");
+        uint256 _to = userMonster[_toAddr];
+        monsters[_to].energy -= _val;
     }
 
     function listMonsters(uint256 _start, uint256 _limit) public view returns (Property[] memory) {

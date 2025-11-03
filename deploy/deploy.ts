@@ -58,6 +58,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   receipt = await execute("EvolvingMonster", { from: deployer }, "transferOwnership", deployedMinter.address);
   console.log("transferOwnership tx", receipt.blockHash);
+
+  receipt = await execute("Inventory", { from: deployer }, "transferOwnership", deployedMinter.address);
+  console.log("transferOwnership Inventory tx", receipt.blockHash);
 };
 export default func;
 func.id = "deploy_fheCounter"; // id required to prevent reexecution

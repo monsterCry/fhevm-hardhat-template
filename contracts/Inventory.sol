@@ -10,22 +10,24 @@ import "hardhat/console.sol";
 
 struct ItemInfo {
     uint16 itemType;
+    uint256 id;
 }
 
 contract Inventory is ERC721URIStorage, SepoliaConfig, Ownable {
     uint256 private _nextTokenId;
 
     mapping(uint256 id => ItemInfo info) private _itemsInfo;
+    mapping(uint256 => bool) private burned;
 
-    mapping(address user => mapping(uint16 => uint16)) private typeBalance;
-
-    constructor() ERC721("Evol Inventory", "Inventory") Ownable(msg.sender) {}
+    constructor() ERC721("Evol Inventory", "Inventory") Ownable(msg.sender) {
+        _nextTokenId = 1;
+    }
 
     event InventoryBurned(uint256 tokenId);
 
     event InventoryMinted(address indexed player, uint256 tokenId, uint16 itemType);
 
-    function internalMint(address player, uint16 itemType) public {
+    function internalMint(address player, uint16 itemType) public onlyOwner {
         uint256 tokenId = _nextTokenId++;
         _mint(player, tokenId);
         string memory url = "";
@@ -37,8 +39,7 @@ contract Inventory is ERC721URIStorage, SepoliaConfig, Ownable {
             name = "Recovery";
             url = "https://ipfs.io/ipfs/bafkreiao6g4jvqxjjwwuof32svbekiutulgv3ynrfbeochmlqodqcfhnfi";
         }
-        _itemsInfo[tokenId] = ItemInfo({itemType: itemType});
-        typeBalance[player][itemType] = typeBalance[player][itemType] + 1;
+        _itemsInfo[tokenId] = ItemInfo({itemType: itemType, id: tokenId});
         string memory uri = string(
             abi.encodePacked(
                 '{"name":"',
@@ -60,12 +61,25 @@ contract Inventory is ERC721URIStorage, SepoliaConfig, Ownable {
         return _itemsInfo[_tokenId];
     }
 
-    function burn(uint256 _tokenId) public {
+    function burn(uint256 _tokenId) public onlyOwner {
         _burn(_tokenId);
+        burned[_tokenId] = true;
         emit InventoryBurned(_tokenId);
     }
 
-    function balanceOfType(address _sender, uint16 _type) public view returns (uint16) {
-        return typeBalance[_sender][_type];
+    function balanceOfType(address _sender) public view returns (ItemInfo[] memory) {
+        uint256 count = balanceOf(_sender);
+        ItemInfo[] memory rets = new ItemInfo[](count);
+        uint256 index = 0;
+        for (uint256 i = 1; i < _nextTokenId; i++) {
+            if (burned[i]) {
+                continue;
+            }
+            if (ownerOf(i) == _sender) {
+                rets[index] = _itemsInfo[i];
+                index++;
+            }
+        }
+        return rets;
     }
 }

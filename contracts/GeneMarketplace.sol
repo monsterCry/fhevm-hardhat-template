@@ -33,6 +33,7 @@ contract GeneMarketplace is SepoliaConfig {
 
     function makeCrossOverRequest(uint256 _tokenId) public payable {
         address _to = cat.ownerOf(_tokenId);
+        require(_to != msg.sender, "You Can't Make request On yourself");
         Auction memory _auc = Auction({
             owner: _to,
             requster: msg.sender,
@@ -48,10 +49,12 @@ contract GeneMarketplace is SepoliaConfig {
 
     function acceptCrossOverRequest(uint256 _acuId) public payable {
         Auction memory _auc = auctions[index][_acuId];
+        require(auctions[index][_acuId].state == 0, "Invalid Request State");
         auctions[index][_acuId].state = 1;
         Property[2] memory res = cat.makeCrossover(msg.sender, _auc.requster);
         cat.updateAttribute(msg.sender, res[0]);
         cat.updateAttribute(_auc.requster, res[1]);
+        payable(msg.sender).transfer(_auc.price);
     }
 
     function palyerOffers(uint256 _idx) public view returns (Auction[] memory) {
@@ -70,7 +73,9 @@ contract GeneMarketplace is SepoliaConfig {
         return res;
     }
 
-    function cancleCrossOverRequest(uint256 _acuId) public {}
+    function cancleCrossOverRequest(uint256 _acuId) public {
+        auctions[index][_acuId].state = 5;
+    }
 
     function nextRound() public {
         index = index + 1;

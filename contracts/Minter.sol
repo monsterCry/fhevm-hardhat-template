@@ -7,12 +7,13 @@ import {SepoliaConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
 import {EvolvingMonster} from "./EvolvingMonster.sol";
 import {GeneMarketplace} from "./GeneMarketplace.sol";
 import {Inventory, ItemInfo} from "./Inventory.sol";
+import {FightingRoom} from "./FightingRoom.sol";
 
 contract Minter is SepoliaConfig {
     EvolvingMonster private monster;
     Inventory private inventory;
     address private market;
-    address private fight;
+    FightingRoom private fight;
 
     mapping(address => uint256) private mintTime;
 
@@ -20,19 +21,17 @@ contract Minter is SepoliaConfig {
         monster = EvolvingMonster(_monster);
         inventory = Inventory(_inventory);
         market = _market;
-        fight = _fight;
+        fight = FightingRoom(_fight);
     }
 
-    function mintMonsterEgg(string memory _name) public {
+    function mintMonsterEgg(string memory _name) public payable {
         monster.mintMonsterEgg(_name, msg.sender);
         inventory.internalMint(msg.sender, 1);
         inventory.internalMint(msg.sender, 2);
+        fight.extendPoint(msg.sender, msg.value);
     }
 
     function gm() public {
-        // if(block.timestamp - mintTime[msg.sender] < 24 * 60 * 60 * 1000) {
-        //     return;
-        // }
         euint64 erand = FHE.randEuint64();
         uint64 rand = monster.random(erand) % 100000;
         if (rand < 10) {
@@ -65,5 +64,11 @@ contract Minter is SepoliaConfig {
         }
         monster.recoverEnergy(msg.sender);
         inventory.burn(_tokenId);
+    }
+
+    function claimReward() public {
+        uint256 _point = fight.getPointCount(msg.sender);
+        require(_point > 0, "point must be greater than 0");
+        payable(msg.sender).transfer(_point);
     }
 }

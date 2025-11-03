@@ -66,6 +66,9 @@ async function deployFixture() {
   receipt = await EvolvingMonsterContract.transferOwnership(MinterAddress);
   console.log("transferOwnership tx", receipt.blockHash, "\r\n");
 
+  receipt = await InventoryContract.transferOwnership(MinterAddress);
+  console.log("transferOwnership InventoryContract tx", receipt.blockHash, "\r\n");
+
   return {
     EvolvingMonsterContract,
     EvolvingMonsterContractAddress,
@@ -133,12 +136,16 @@ describe("EvolMonster test", function () {
   });
 
   it("Mint Monster", async function () {
-    const tx = await MinterContract.connect(player1).mintMonsterEgg("test1");
+    const tx = await MinterContract.connect(player1).mintMonsterEgg("test1", {
+      value: ethers.parseEther("0.05"),
+    });
     await tx.wait();
     await EvolvingMonsterContract.getProperty(player1.address);
     //console.log(tx.hash, prop);
 
-    const tx1 = await MinterContract.connect(player2).mintMonsterEgg("test2");
+    const tx1 = await MinterContract.connect(player2).mintMonsterEgg("test2", {
+      value: ethers.parseEther("0.05"),
+    });
     await tx1.wait();
     await EvolvingMonsterContract.getProperty(player2.address);
     //console.log(tx1.hash, prop1);
@@ -148,17 +155,29 @@ describe("EvolMonster test", function () {
   it("Make Monster Battle", async function () {
     let prop1 = await EvolvingMonsterContract.getProperty(player1.address);
     let prop2 = await EvolvingMonsterContract.getProperty(player2.address);
-    //console.log(prop1, prop2);
+    //console.log(player1.address + "Make Monster Battle===", prop1, player2.address + "Make Monster Battle===", prop2);
     let tx = await FightingRoomContract.connect(player1).attack(prop2[5]);
     await tx.wait();
 
     tx = await FightingRoomContract.connect(player2).attack(prop1[5]);
     await tx.wait();
+
     prop1 = await EvolvingMonsterContract.getProperty(player1.address);
     prop2 = await EvolvingMonsterContract.getProperty(player2.address);
     //console.log(prop1, prop2);
-    // console.log(await EvolvingMonsterContract.tokenURI(prop1[5]));
-    // console.log(await EvolvingMonsterContract.tokenURI(prop2[5]));
+    console.log(await EvolvingMonsterContract.tokenURI(prop1[5]));
+    console.log(await EvolvingMonsterContract.tokenURI(prop2[5]));
+
+    const a1 = await FightingRoomContract.loadAttacks(player1.address);
+    const a2 = await FightingRoomContract.loadAttacks(player2.address);
+    console.log("a1=", a1, "a2==", a2);
+
+    // const encryptedOne = await fhevm
+    //   .createEncryptedInput(FightingRoomContractAddress, player1.address)
+    //   .add32(0)
+    //   .encrypt();
+    // const hexData = ethers.AbiCoder.defaultAbiCoder().encode(["bool", "uint64"], [true, 1]);
+    // await FightingRoomContract.attackResult(0, hexData, encryptedOne.inputProof);
   });
 
   it("Make Gene Exchage Request", async function () {
@@ -196,16 +215,13 @@ describe("EvolMonster test", function () {
     let prop1 = await EvolvingMonsterContract.getProperty(player1.address);
     let prop2 = await EvolvingMonsterContract.getProperty(player2.address);
 
-    console.log(await InventoryContract.tokenURI(1));
+    // console.log(await InventoryContract.tokenURI(1));
 
-    let m1 = await InventoryContract.balanceOfType(player1.address, 1);
-    let m2 = await InventoryContract.balanceOfType(player2.address, 1);
-    console.log(m1, m2);
-    m1 = await InventoryContract.balanceOfType(player1.address, 2);
-    m2 = await InventoryContract.balanceOfType(player2.address, 2);
-    console.log(m1, m2);
+    const m1 = await InventoryContract.balanceOfType(player1.address);
+    const m2 = await InventoryContract.balanceOfType(player2.address);
+    console.log("===balance", m1, m2);
     await MinterContract.connect(player1).makeMutation(1);
-    await MinterContract.connect(player2).makeMutation(3);
+    await MinterContract.connect(player2).makeMutation(4);
 
     prop1 = await EvolvingMonsterContract.getProperty(player1.address);
     prop2 = await EvolvingMonsterContract.getProperty(player2.address);
@@ -228,61 +244,4 @@ describe("EvolMonster test", function () {
       console.log("p2=" + decVar);
     }
   });
-
-  // it("increment the counter by 1", async function () {
-  //   const encryptedCountBeforeInc = await fheCounterContract.getCount();
-  //   expect(encryptedCountBeforeInc).to.eq(ethers.ZeroHash);
-  //   const clearCountBeforeInc = 0;
-
-  //   // Encrypt constant 1 as a euint32
-  //   const clearOne = 1;
-  //   const encryptedOne = await fhevm
-  //     .createEncryptedInput(fheCounterContractAddress, signers.alice.address)
-  //     .add32(clearOne)
-  //     .encrypt();
-
-  //   const tx = await fheCounterContract
-  //     .connect(signers.alice)
-  //     .increment(encryptedOne.handles[0], encryptedOne.inputProof);
-  //   await tx.wait();
-
-  //   const encryptedCountAfterInc = await fheCounterContract.getCount();
-  //   const clearCountAfterInc = await fhevm.userDecryptEuint(
-  //     FhevmType.euint32,
-  //     encryptedCountAfterInc,
-  //     fheCounterContractAddress,
-  //     signers.alice,
-  //   );
-
-  //   expect(clearCountAfterInc).to.eq(clearCountBeforeInc + clearOne);
-  // });
-
-  // it("decrement the counter by 1", async function () {
-  //   // Encrypt constant 1 as a euint32
-  //   const clearOne = 1;
-  //   const encryptedOne = await fhevm
-  //     .createEncryptedInput(fheCounterContractAddress, signers.alice.address)
-  //     .add32(clearOne)
-  //     .encrypt();
-
-  //   // First increment by 1, count becomes 1
-  //   let tx = await fheCounterContract
-  //     .connect(signers.alice)
-  //     .increment(encryptedOne.handles[0], encryptedOne.inputProof);
-  //   await tx.wait();
-
-  //   // Then decrement by 1, count goes back to 0
-  //   tx = await fheCounterContract.connect(signers.alice).decrement(encryptedOne.handles[0], encryptedOne.inputProof);
-  //   await tx.wait();
-
-  //   const encryptedCountAfterDec = await fheCounterContract.getCount();
-  //   const clearCountAfterInc = await fhevm.userDecryptEuint(
-  //     FhevmType.euint32,
-  //     encryptedCountAfterDec,
-  //     fheCounterContractAddress,
-  //     signers.alice,
-  //   );
-
-  //   expect(clearCountAfterInc).to.eq(0);
-  // });
 });
