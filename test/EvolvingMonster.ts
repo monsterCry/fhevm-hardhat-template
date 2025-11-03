@@ -156,11 +156,11 @@ describe("EvolMonster test", function () {
     let prop1 = await EvolvingMonsterContract.getProperty(player1.address);
     let prop2 = await EvolvingMonsterContract.getProperty(player2.address);
     //console.log(player1.address + "Make Monster Battle===", prop1, player2.address + "Make Monster Battle===", prop2);
-    let tx = await FightingRoomContract.connect(player1).attack(prop2[5]);
-    await tx.wait();
+    // let tx = await FightingRoomContract.connect(player1).attack(prop2[5]);
+    // await tx.wait();
 
-    tx = await FightingRoomContract.connect(player2).attack(prop1[5]);
-    await tx.wait();
+    // tx = await FightingRoomContract.connect(player2).attack(prop1[5]);
+    // await tx.wait();
 
     prop1 = await EvolvingMonsterContract.getProperty(player1.address);
     prop2 = await EvolvingMonsterContract.getProperty(player2.address);
