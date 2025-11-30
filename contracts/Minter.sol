@@ -14,8 +14,9 @@ contract Minter is SepoliaConfig {
     Inventory private inventory;
     address private market;
     FightingRoom private fight;
+    uint256 ONE_DAY_SECOND = 24 * 60 * 60;
 
-    mapping(address => uint256) private mintTime;
+    mapping(address => uint256) private gmTimestamp;
 
     constructor(address _monster, address _market, address _fight, address _inventory) {
         monster = EvolvingMonster(_monster);
@@ -32,6 +33,7 @@ contract Minter is SepoliaConfig {
     }
 
     function gm() public {
+        require(block.timestamp - gmTimestamp[msg.sender] > ONE_DAY_SECOND, "Please Wait for One day");
         euint64 erand = FHE.randEuint64();
         uint64 rand = monster.random(erand) % 100000;
         if (rand < 10) {
@@ -39,7 +41,11 @@ contract Minter is SepoliaConfig {
         } else if (rand >= 10 && rand < 1010) {
             inventory.internalMint(msg.sender, 2);
         }
-        mintTime[msg.sender] = block.timestamp;
+        gmTimestamp[msg.sender] = block.timestamp;
+    }
+
+    function getGmTimestamp() public view returns (uint256) {
+        return gmTimestamp[msg.sender];
     }
 
     function makeMutation(uint256 _tokenId) public {
@@ -70,5 +76,9 @@ contract Minter is SepoliaConfig {
         uint256 _point = fight.getPointCount(msg.sender);
         require(_point > 0, "point must be greater than 0");
         payable(msg.sender).transfer(_point);
+    }
+
+    function playerReward(address _player) public view returns (uint256) {
+        return fight.getPointCount(_player);
     }
 }

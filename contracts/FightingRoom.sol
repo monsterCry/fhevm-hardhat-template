@@ -76,10 +76,16 @@ contract FightingRoom is SepoliaConfig {
         cat.decreseEnergy(_to, 100);
     }
 
-    function attackResult(uint256 requestId, bytes memory cleartexts, bytes memory decryptionProof) public {
+    function attackResult(
+        uint256 requestId,
+        bytes memory cleartexts,
+        bytes memory decryptionProof
+    ) public returns (bool) {
         console.logString("==========================attackResult");
-        require(!attacks[requestId].decrypt, "Invalid requestId");
+
+        //require(!attacks[requestId].decrypt, "Invalid requestId");
         AttackRequest memory attackReq = attacks[requestId];
+        emit BattleComplete(attackReq.to, attackReq.sender);
         FHE.checkSignatures(requestId, cleartexts, decryptionProof);
         attacks[requestId].decrypt = true;
         (bool win, uint64 score) = abi.decode(cleartexts, (bool, uint64));
@@ -100,7 +106,7 @@ contract FightingRoom is SepoliaConfig {
         }
         userScore[attackReq.sender].total = userScore[attackReq.sender].total + 1;
         userScore[attackReq.to].total = userScore[attackReq.to].total + 1;
-        emit BattleComplete(attackReq.sender, attackReq.to);
+        return true;
     }
 
     function getFightScore(address _target) public view returns (FightInfo memory) {

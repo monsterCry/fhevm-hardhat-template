@@ -97,7 +97,7 @@ contract EvolvingMonster is SepoliaConfig, ERC721URIStorage, Ownable {
         monsters[_to].id = _to;
 
         _mint(_toAddr, tokenId);
-        string memory url = "https://ipfs.io/ipfs/bafybeibt6cwlreaiihn6spego2iammfnspuo7rjchpp6azb2pfymjdxsdq";
+        string memory url = "https://ar.4everland.io/tjGh_R8oAU-lDJhnjobeO7rMYytA55J1Hq7DgY4T_TY";
         string memory uri = string(
             abi.encodePacked(
                 '{"name":"',
