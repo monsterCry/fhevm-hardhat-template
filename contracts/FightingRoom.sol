@@ -2,7 +2,8 @@
 pragma solidity ^0.8.24;
 
 import {FHE, euint64, ebool} from "@fhevm/solidity/lib/FHE.sol";
-import {SepoliaConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
+import {ZamaEthereumConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
+
 import {Property, EvolvingMonster} from "./EvolvingMonster.sol";
 import {Inventory, ItemInfo} from "./Inventory.sol";
 import "hardhat/console.sol";
@@ -18,9 +19,11 @@ struct AttackRequest {
     address to;
     bool win;
     bool decrypt;
+    ebool ewin;
+    euint64 escore;
 }
 
-contract FightingRoom is SepoliaConfig {
+contract FightingRoom is ZamaEthereumConfig {
     EvolvingMonster private cat;
     Inventory private item;
 
@@ -36,12 +39,15 @@ contract FightingRoom is SepoliaConfig {
 
     uint256 attackIdx;
 
+    uint256 reqId;
+
     event BattleComplete(address src, address dest);
 
     constructor(address _cat, address _item) {
         cat = EvolvingMonster(_cat);
         item = Inventory(_item);
         attackIdx = 0;
+        reqId = 1;
     }
 
     function attack(uint256 _tokenId) public {
@@ -60,12 +66,22 @@ contract FightingRoom is SepoliaConfig {
         ebool win = FHE.gt(sum1, sum2);
         euint64 score = FHE.select(win, FHE.sub(sum1, sum2), FHE.asEuint64(0));
 
-        bytes32[] memory cts = new bytes32[](2);
-        cts[0] = FHE.toBytes32(win);
-        cts[1] = FHE.toBytes32(score);
+        // bytes32[] memory cts = new bytes32[](2);
+        // cts[0] = FHE.toBytes32(win);
+        // cts[1] = FHE.toBytes32(score);
 
-        uint256 reqId = FHE.requestDecryption(cts, this.attackResult.selector);
-        attacks[reqId] = AttackRequest({sender: msg.sender, to: _to, win: false, decrypt: false});
+        //uint256 reqId = FHE.requestDecryption(cts, this.attackResult.selector);
+        attacks[reqId] = AttackRequest({
+            sender: msg.sender,
+            to: _to,
+            win: false,
+            decrypt: false,
+            ewin: win,
+            escore: score
+        });
+
+        FHE.makePubliclyDecryptable(win);
+        FHE.makePubliclyDecryptable(score);
 
         userAttacks[attackIdx] = reqId;
         attackIdx++;
@@ -74,21 +90,30 @@ contract FightingRoom is SepoliaConfig {
 
         console.log(reqId);
         cat.decreseEnergy(_to, 100);
+
+        reqId = reqId + 1;
     }
 
     function attackResult(
         uint256 requestId,
-        bytes memory cleartexts,
-        bytes memory decryptionProof
+        bool win,
+        uint64 score,
+        bytes memory publicDecryptionProof
     ) public returns (bool) {
         console.logString("==========================attackResult");
 
         //require(!attacks[requestId].decrypt, "Invalid requestId");
         AttackRequest memory attackReq = attacks[requestId];
         emit BattleComplete(attackReq.to, attackReq.sender);
-        FHE.checkSignatures(requestId, cleartexts, decryptionProof);
+
+        bytes32[] memory ciphertextEfooEbar = new bytes32[](2);
+        ciphertextEfooEbar[0] = FHE.toBytes32(attackReq.ewin);
+        ciphertextEfooEbar[1] = FHE.toBytes32(attackReq.escore);
+
+        bytes memory abiClearFooClearBar = abi.encode(win, score);
+        FHE.checkSignatures(ciphertextEfooEbar, abiClearFooClearBar, publicDecryptionProof);
+
         attacks[requestId].decrypt = true;
-        (bool win, uint64 score) = abi.decode(cleartexts, (bool, uint64));
         if (win) {
             userScore[attackReq.sender].score = userScore[attackReq.sender].score + score;
             userScore[attackReq.sender].win = userScore[attackReq.sender].win + 1;

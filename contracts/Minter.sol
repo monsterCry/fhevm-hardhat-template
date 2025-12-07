@@ -2,14 +2,14 @@
 pragma solidity ^0.8.24;
 
 import {FHE, euint64, externalEuint32} from "@fhevm/solidity/lib/FHE.sol";
-import {SepoliaConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
+import {ZamaEthereumConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
 
 import {EvolvingMonster} from "./EvolvingMonster.sol";
 import {GeneMarketplace} from "./GeneMarketplace.sol";
 import {Inventory, ItemInfo} from "./Inventory.sol";
 import {FightingRoom} from "./FightingRoom.sol";
 
-contract Minter is SepoliaConfig {
+contract Minter is ZamaEthereumConfig {
     EvolvingMonster private monster;
     Inventory private inventory;
     address private market;

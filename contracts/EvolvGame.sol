@@ -2,9 +2,9 @@
 pragma solidity ^0.8.24;
 
 import {FHE, euint64, externalEuint32} from "@fhevm/solidity/lib/FHE.sol";
-import {SepoliaConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
+import {ZamaEthereumConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
 
-contract EvolvGame is SepoliaConfig {
+contract EvolvGame is ZamaEthereumConfig {
     uint8 gameState;
 
     constructor() {}

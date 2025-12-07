@@ -2,11 +2,11 @@
 pragma solidity ^0.8.24;
 
 import {FHE, euint128, externalEuint32} from "@fhevm/solidity/lib/FHE.sol";
-import {SepoliaConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
+import {ZamaEthereumConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
 
 import {Property, EvolvingMonster} from "./EvolvingMonster.sol";
 
-contract GeneMarketplace is SepoliaConfig {
+contract GeneMarketplace is ZamaEthereumConfig {
     EvolvingMonster private cat;
 
     struct Auction {

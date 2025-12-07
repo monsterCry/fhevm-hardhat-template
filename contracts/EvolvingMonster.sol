@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 import {FHE, euint128, euint64, externalEuint32, ebool} from "@fhevm/solidity/lib/FHE.sol";
-import {SepoliaConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
+import {ZamaEthereumConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
 import {ABDKMath64x64} from "abdk-libraries-solidity/ABDKMath64x64.sol";
 import {ERC721URIStorage, ERC721} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
@@ -18,7 +18,7 @@ struct Property {
     uint256 id;
 }
 
-contract EvolvingMonster is SepoliaConfig, ERC721URIStorage, Ownable {
+contract EvolvingMonster is ZamaEthereumConfig, ERC721URIStorage, Ownable {
     mapping(address player => uint256 id) private userMonster;
 
     mapping(uint256 id => Property prop) private monsters;

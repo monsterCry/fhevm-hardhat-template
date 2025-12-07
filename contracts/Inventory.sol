@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 import {FHE, euint128, externalEuint32} from "@fhevm/solidity/lib/FHE.sol";
-import {SepoliaConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
+import {ZamaEthereumConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
 import {ERC721URIStorage, ERC721} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
@@ -13,7 +13,7 @@ struct ItemInfo {
     uint256 id;
 }
 
-contract Inventory is ERC721URIStorage, SepoliaConfig, Ownable {
+contract Inventory is ERC721URIStorage, ZamaEthereumConfig, Ownable {
     uint256 private _nextTokenId;
 
     mapping(uint256 id => ItemInfo info) private _itemsInfo;
