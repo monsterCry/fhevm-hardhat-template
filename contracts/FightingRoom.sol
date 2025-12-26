@@ -21,6 +21,8 @@ struct AttackRequest {
     bool decrypt;
     ebool ewin;
     euint64 escore;
+    uint256 reqId;
+    uint256 lauchTime;
 }
 
 contract FightingRoom is ZamaEthereumConfig {
@@ -66,18 +68,15 @@ contract FightingRoom is ZamaEthereumConfig {
         ebool win = FHE.gt(sum1, sum2);
         euint64 score = FHE.select(win, FHE.sub(sum1, sum2), FHE.asEuint64(0));
 
-        // bytes32[] memory cts = new bytes32[](2);
-        // cts[0] = FHE.toBytes32(win);
-        // cts[1] = FHE.toBytes32(score);
-
-        //uint256 reqId = FHE.requestDecryption(cts, this.attackResult.selector);
         attacks[reqId] = AttackRequest({
             sender: msg.sender,
             to: _to,
             win: false,
             decrypt: false,
             ewin: win,
-            escore: score
+            escore: score,
+            reqId: reqId,
+            lauchTime: block.timestamp
         });
 
         FHE.makePubliclyDecryptable(win);
@@ -100,9 +99,6 @@ contract FightingRoom is ZamaEthereumConfig {
         uint64 score,
         bytes memory publicDecryptionProof
     ) public returns (bool) {
-        console.logString("==========================attackResult");
-
-        //require(!attacks[requestId].decrypt, "Invalid requestId");
         AttackRequest memory attackReq = attacks[requestId];
         emit BattleComplete(attackReq.to, attackReq.sender);
 
@@ -117,14 +113,14 @@ contract FightingRoom is ZamaEthereumConfig {
         if (win) {
             userScore[attackReq.sender].score = userScore[attackReq.sender].score + score;
             userScore[attackReq.sender].win = userScore[attackReq.sender].win + 1;
-            points[attackReq.sender] += 10000;
+            points[attackReq.sender] += 5;
             attacks[requestId].win = true;
         } else {
             userScore[attackReq.to].score = userScore[attackReq.to].score + score;
             userScore[attackReq.to].win = userScore[attackReq.to].win + 1;
             attacks[requestId].win = false;
             if (points[attackReq.sender] > 10000) {
-                points[attackReq.sender] -= 10000;
+                points[attackReq.sender] -= 5;
             } else {
                 points[attackReq.sender] = 0;
             }

@@ -16,7 +16,7 @@ import "./tasks/FHECounter";
 //https://eth-sepolia.g.alchemy.com/v2/Cso3EZHJ0EjfjzXTU5oISbtOhBkilFRU
 const MNEMONIC: string = vars.get("MNEMONIC", "test test test test test test test test test test test junk");
 const PRIVKEY: string = vars.get("PRIVKEY", "d65a7d95c4263e703bd1238eb6e86c5d5661f309c527faa20deefa7e8bb8b72f");
-const INFURA_API_KEY: string = vars.get("INFURA_API_KEY", "Cso3EZHJ0EjfjzXTU5oISbtOhBkilFRU");
+const INFURA_API_KEY: string = vars.get("INFURA_API_KEY", "_iXGcHToZonxLc1dSFv_-2ySIeC0_heG");
 
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
@@ -50,14 +50,9 @@ const config: HardhatUserConfig = {
       url: "http://localhost:8545",
     },
     sepolia: {
-      // accounts: {
-      //   mnemonic: MNEMONIC,
-      //   path: "m/44'/60'/0'/0/",
-      //   count: 10,
-      // },
       accounts: ["d65a7d95c4263e703bd1238eb6e86c5d5661f309c527faa20deefa7e8bb8b72f"],
       chainId: 11155111,
-      url: `https://eth-sepolia.g.alchemy.com/v2/${INFURA_API_KEY}`,
+      url: `https://sepolia.infura.io/v3/ed999e4f897b4d20a16a12d555805fcc`,
     },
   },
   paths: {
